@@ -9,7 +9,7 @@ fi
 uninstall_package() {
   systemctl stop aleo
   systemctl disable aleo
-  rm -f /etc/systemd/system/aleo.service
+  rm -f $APPROOT/etc/systemd/system/aleo.service
   rm -rf $APPROOT/start_aleo.sh
   rm -rf $APPROOT/stop_aleo.sh
   rm -rf $APPROOT/aleowrapper
