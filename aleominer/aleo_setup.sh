@@ -10,11 +10,11 @@ uninstall_package() {
   systemctl stop aleo
   systemctl disable aleo
   rm -f /etc/systemd/system/aleo.service
-  rm -rf /start_aleo.sh
-  rm -rf /stop_aleo.sh
-  rm -rf /aleowrapper
-  rm -rf /prover.log
-  rm -rf /config.cfg
+  rm -rf $APPROOT/start_aleo.sh
+  rm -rf $APPROOT/stop_aleo.sh
+  rm -rf $APPROOT/aleowrapper
+  rm -rf $APPROOT/prover.log
+  rm -rf $APPROOT/config.cfg
 }
 
 WORKER=
@@ -39,23 +39,23 @@ while getopts "w:p:u" opt; do
 done
 
 if [ ! -f $APPROOT/config.cfg ]; then
-cat << EOF > /config.cfg
+cat << EOF > $APPROOT/config.cfg
 WORKER=$WORKER
 POOL=$POOL
 EOF
 fi
-source /config.cfg
+source $APPROOT/config.cfg
 
 if [[ "$POOL" == "xxx.xxx.xxx.xxx:xxxx" || "$POOL" == "" ]]; then
-    echo -e "Please edit the '/config.cfg'\n"
+    echo -e "Please edit the '$APPROOT/config.cfg'\n"
     exit 1
 fi
 
-if [[ ! -f /aleominer ]]; then
+if [[ ! -f $APPROOT/aleominer ]]; then
     echo -e "aleominer not found\n"
     exit 1
 fi
-chmod +x /aleominer
+chmod +x $APPROOT/aleominer
 
 cat << EOF > /etc/systemd/system/aleo.service
 [Unit]
@@ -77,19 +77,19 @@ RestartPreventExitStatus=23
 WantedBy=multi-user.target
 EOF
 
-cat << SUPER-EOF > /aleowrapper
+cat << SUPER-EOF > $APPROOT/aleowrapper
 #!/bin/bash
 set -o pipefail
 
 source $APPROOT/config.cfg
 
 if [[ "\$POOL" == "xxx.xxx.xxx.xxx:xxxx" || "\$POOL" == "" ]]; then
-    echo -e "Please edit the '/config.cfg'\n"
+    echo -e "Please edit the '$APPROOT/config.cfg'\n"
     exit 1
 fi
 
-LOG_PATH="/prover.log"
-APP_PATH="/aleominer"
+LOG_PATH="$APPROOT/prover.log"
+APP_PATH="$APPROOT/aleominer"
 
 cat << EOF >> \$LOG_PATH
 =============================================================================
@@ -99,19 +99,19 @@ Pool            : \$POOL
 EOF
 \$APP_PATH -w "\$WORKER" -u "\$POOL" >> \$LOG_PATH 2>&1
 SUPER-EOF
-chmod +x /aleowrapper
+chmod +x $APPROOT/aleowrapper
 
-cat << EOF > /start_aleo.sh
+cat << EOF > $APPROOT/start_aleo.sh
 #!/bin/bash
 sudo systemctl start aleo
 EOF
-chmod +x /start_aleo.sh
+chmod +x $APPROOT/start_aleo.sh
 
-cat << EOF > /stop_aleo.sh
+cat << EOF > $APPROOT/stop_aleo.sh
 #!/bin/bash
 sudo systemctl stop aleo
 EOF
-chmod +x /stop_aleo.sh
+chmod +x $APPROOT/stop_aleo.sh
 
 systemctl enable aleo
 systemctl start aleo
